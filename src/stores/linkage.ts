@@ -2,7 +2,7 @@ import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 
 export type DeviceType = '感烟探测器' | '感温探测器' | '手动报警按钮' | '输入模块' | '输出模块' | '排烟风机' | '防火卷帘' | '消防广播' | '电梯'
-export type Device = { id: string; name: string; type: DeviceType; floor: string; zone: string; address: string }
+export type Device = { id: string; name: string; type: DeviceType; floor: string; zone: string; address: string; power: number; duration: number }
 export type Rule = {
   id: string
   triggerId: string
@@ -15,17 +15,43 @@ export type Rule = {
 }
 export type Validation = { id: string; severity: '错误' | '警告'; ruleIds: string[]; title: string; detail: string; suggestion: string }
 
+export const ESSENTIAL_LOAD_TYPES: DeviceType[] = ['排烟风机', '防火卷帘', '消防广播']
+
+export const POWER_BY_TYPE: Record<DeviceType, number> = {
+  感烟探测器: 0.05,
+  感温探测器: 0.05,
+  手动报警按钮: 0.05,
+  输入模块: 0.1,
+  输出模块: 0.2,
+  排烟风机: 15,
+  防火卷帘: 3,
+  消防广播: 0.5,
+  电梯: 7.5,
+}
+
+export const DURATION_BY_TYPE: Record<DeviceType, number> = {
+  感烟探测器: 60,
+  感温探测器: 60,
+  手动报警按钮: 60,
+  输入模块: 60,
+  输出模块: 60,
+  排烟风机: 120,
+  防火卷帘: 60,
+  消防广播: 180,
+  电梯: 90,
+}
+
 export const seedDevices: Device[] = [
-  { id: 'D-01-01', name: '一层大厅感烟 01', type: '感烟探测器', floor: '1F', zone: 'A 区', address: '1-A-01-01' },
-  { id: 'D-01-02', name: '一层大厅感烟 02', type: '感烟探测器', floor: '1F', zone: 'A 区', address: '1-A-01-02' },
-  { id: 'D-01-11', name: '一层东侧手报', type: '手动报警按钮', floor: '1F', zone: 'A 区', address: '1-A-02-01' },
-  { id: 'A-01-01', name: '一层排烟风机 PF-1', type: '排烟风机', floor: '1F', zone: 'A 区', address: '1-F-01-01' },
-  { id: 'A-01-02', name: '中庭防火卷帘 01', type: '防火卷帘', floor: '1F', zone: '中庭', address: '1-R-01-01' },
-  { id: 'A-01-03', name: '一层消防广播', type: '消防广播', floor: '1F', zone: 'A 区', address: '1-B-01-01' },
-  { id: 'D-02-01', name: '二层机房感温 01', type: '感温探测器', floor: '2F', zone: 'B 区', address: '2-B-01-01' },
-  { id: 'D-02-02', name: '二层机房感烟 01', type: '感烟探测器', floor: '2F', zone: 'B 区', address: '2-B-01-02' },
-  { id: 'A-02-01', name: '二层排烟风机 PF-2', type: '排烟风机', floor: '2F', zone: 'B 区', address: '2-F-01-01' },
-  { id: 'A-02-02', name: '1 号客梯归位', type: '电梯', floor: '2F', zone: 'B 区', address: '2-L-01-01' },
+  { id: 'D-01-01', name: '一层大厅感烟 01', type: '感烟探测器', floor: '1F', zone: 'A 区', address: '1-A-01-01', power: 0.05, duration: 60 },
+  { id: 'D-01-02', name: '一层大厅感烟 02', type: '感烟探测器', floor: '1F', zone: 'A 区', address: '1-A-01-02', power: 0.05, duration: 60 },
+  { id: 'D-01-11', name: '一层东侧手报', type: '手动报警按钮', floor: '1F', zone: 'A 区', address: '1-A-02-01', power: 0.05, duration: 60 },
+  { id: 'A-01-01', name: '一层排烟风机 PF-1', type: '排烟风机', floor: '1F', zone: 'A 区', address: '1-F-01-01', power: 15, duration: 120 },
+  { id: 'A-01-02', name: '中庭防火卷帘 01', type: '防火卷帘', floor: '1F', zone: '中庭', address: '1-R-01-01', power: 3, duration: 60 },
+  { id: 'A-01-03', name: '一层消防广播', type: '消防广播', floor: '1F', zone: 'A 区', address: '1-B-01-01', power: 0.5, duration: 180 },
+  { id: 'D-02-01', name: '二层机房感温 01', type: '感温探测器', floor: '2F', zone: 'B 区', address: '2-B-01-01', power: 0.05, duration: 60 },
+  { id: 'D-02-02', name: '二层机房感烟 01', type: '感烟探测器', floor: '2F', zone: 'B 区', address: '2-B-01-02', power: 0.05, duration: 60 },
+  { id: 'A-02-01', name: '二层排烟风机 PF-2', type: '排烟风机', floor: '2F', zone: 'B 区', address: '2-F-01-01', power: 15, duration: 120 },
+  { id: 'A-02-02', name: '1 号客梯归位', type: '电梯', floor: '2F', zone: 'B 区', address: '2-L-01-01', power: 7.5, duration: 90 },
 ]
 
 export const seedRules: Rule[] = [
